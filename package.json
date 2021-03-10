@@ -1,0 +1,23 @@
+{
+  "name": "@ederzadravec/super-model-mongo",
+  "version": "1.0.0",
+  "main": "dist/model.js",
+  "repository": "git@github.com:ederzadravec/super-model-mongo.git",
+  "author": "Éder Zadravec <ederzadravec@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "tsc && yarn copy-dts",
+    "copy-dts": "cp -R src/*.d.ts dist"
+  },
+  "dependencies": {
+    "objectid": "^3.2.1",
+    "ramda": "^0.27.1",
+    "typescript": "^4.2.3"
+  },
+  "devDependencies": {
+    "@types/mongoose": "^5.10.3",
+    "@types/ramda": "^0.27.38",
+    "mongoose": "^5.11.19"
+  }
+}
