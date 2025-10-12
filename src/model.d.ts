@@ -1,46 +1,62 @@
-import { Aggregate, Query, ObjectId } from 'mongoose';
+import { Aggregate, Query, ObjectId, Document, FilterQuery, UpdateQuery, QueryOptions } from 'mongoose';
 
-export interface Request {
-  query?: {
-    limit?: string;
-    page?: string;
-  };
-}
-
-export interface DefaultOptions {
-  populate?: (data: any) => any;
-}
-
-export interface FindAllOptions {
-  sort?: {
-    [id: string]: number;
-  };
-  project?: string;
-}
-
-export interface FindAllResponse {
-  data: any[];
-  total?: number;
-  page?: number;
+export interface PaginationOptions {
   limit?: number;
+  page?: number;
 }
 
-export interface ServiceInstance {
-  oid: (id: string) => ObjectId;
-
-  aggregate: Aggregate<any>;
-
-  findOne: (req?: Request, query?: any, ...props: any) => Promise<any>;
-  findAll: (req?: Request, query?: any, options?: FindAllOptions) => Promise<FindAllResponse>;
-  create: (req?: Request, data?: any) => Promise<any>;
-  update: (req?: Request, query?: any, data?: any) => Query<{ ok: number; n: number; nModified: number }, any>;
-  remove: (req?: Request, query?: any) => Query<{ ok: number; n: number; nModified: number }, any>;
-
-  hasAny: (req?: Request, fields?: any, exclude?: string) => Promise<string[]>;
-
-  findOnePath: (req?: Request, query: any, path: string) => Promise<any>;
-  findAllPath: (req?: Request, query: any, path: string) => Promise<FindAllResponse>;
-  createPath: (req?: Request, query: any, path: string, data: any) => Promise<{ ok: number, n: number, nModified: number }>;
-  updatePath: (req?: Request, query: any, path: string, data: any) => Promise<{ ok: number, n: number, nModified: number }>;
-  removePath: (req?: Request, query: any, path: string) => Promise<{ ok: number, n: number, nModified: number }>;
+export interface DefaultOptions<T = Document> {
+  populate?: (data: T | T[] | null) => Promise<T | T[] | null> | T | T[] | null;
 }
+
+export interface FindAllOptions extends PaginationOptions {
+  sort?: Record<string, 1 | -1>;
+  project?: string | Record<string, 0 | 1>;
+}
+
+export interface FindAllResponse<T = Document> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UpdateResult {
+  ok: number;
+  n: number;
+  nModified: number;
+}
+
+export type PathOperation = 'create' | 'update' | 'remove';
+
+export type MongoQuery<T = Document> = FilterQuery<T>;
+export type MongoUpdate<T = Document> = UpdateQuery<T>;
+export type MongoProjection = string | Record<string, 0 | 1>;
+
+export interface ServiceInstance<T extends Document = Document> {
+  aggregate: (pipeline: Array<Record<string, unknown>>) => Aggregate<unknown[]>;
+
+  findOne: (query?: MongoQuery<T>, projection?: MongoProjection, options?: QueryOptions) => Promise<T | null>;
+  findAll: (query?: MongoQuery<T>, options?: FindAllOptions) => Promise<FindAllResponse<T>>;
+  create: (data?: Partial<T>) => Promise<T>;
+  update: (query?: MongoQuery<T>, data?: MongoUpdate<T>) => Query<UpdateResult, T>;
+  remove: (query?: MongoQuery<T>) => Query<UpdateResult, T>;
+
+  hasAny: (fields?: Record<string, unknown>, exclude?: string) => Promise<string[]>;
+
+  findOnePath: <R = unknown>(query: MongoQuery<T>, path: string) => Promise<R | null>;
+  findAllPath: <R = unknown>(
+    query: MongoQuery<T>,
+    path: string,
+    options?: FindAllOptions
+  ) => Promise<FindAllResponse<R>>;
+  createPath: (query: MongoQuery<T>, path: string, data: Record<string, unknown>) => Promise<UpdateResult>;
+  updatePath: (query: MongoQuery<T>, path: string, data: Record<string, unknown>) => Promise<UpdateResult>;
+  removePath: (query: MongoQuery<T>, path: string) => Promise<UpdateResult>;
+}
+
+export interface SuperModelFactory {
+  <T extends Document = Document>(model: any, defaultOptions?: DefaultOptions<T>): ServiceInstance<T>;
+}
+
+export default SuperModelFactory;
