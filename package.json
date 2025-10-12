@@ -3,7 +3,15 @@
   "version": "2.1.1",
   "description": "A powerful MongoDB wrapper with enhanced functionality for nested documents and complex queries",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:ederzadravec/super-model-mongo.git"
