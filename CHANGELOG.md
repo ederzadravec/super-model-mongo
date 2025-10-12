@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2025-10-11
+
+### 🔧 Fixed
+- **Import Issues**: Resolved module resolution problems
+- Removed circular import references causing runtime errors
+- Fixed `module.d` reference causing "Cannot find module" errors
+- Improved TypeScript declaration generation
+
+### 📦 Enhanced
+- Added comprehensive `exports` field in package.json for better ESM support
+- Improved module resolution compatibility with different bundlers
+- Better TypeScript type export organization
+
+### ✅ Verified Import Support
+- ✅ `import SuperModelMongo from '@ederzadravec/super-model-mongo'`
+- ✅ `import { createSuperModel } from '@ederzadravec/super-model-mongo'`
+- ✅ `import SuperModelMongo, { ServiceInstance } from '@ederzadravec/super-model-mongo'`
+
 ## [2.1.1] - 2025-10-11
 
 ### 🚀 Improved
