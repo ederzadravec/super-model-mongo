@@ -15,6 +15,9 @@
   "author": "Éder Zadravec <ederzadravec@gmail.com>",
   "license": "MIT",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "mongodb",
     "mongoose",
