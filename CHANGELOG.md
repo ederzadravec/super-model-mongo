@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-10-11
+
+### 🚀 Improved
+- **Default Import Support**: Now supports `import SuperModelMongo from '@ederzadravec/super-model-mongo'`
+- Updated package.json main entry point to use `dist/index.js`
+- Enhanced index.ts with proper default export
+- Updated examples and documentation to show preferred import syntax
+
+### 🔧 Technical
+- Fixed package entry points for better ES module compatibility
+- Maintained backward compatibility with named imports
+- Updated README with comprehensive import examples
+
 ## [2.1.0] - 2025-10-11
 
 ### 🚀 Added

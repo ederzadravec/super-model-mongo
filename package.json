@@ -1,9 +1,9 @@
 {
   "name": "@ederzadravec/super-model-mongo",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A powerful MongoDB wrapper with enhanced functionality for nested documents and complex queries",
-  "main": "dist/model.js",
-  "types": "dist/model.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git@github.com:ederzadravec/super-model-mongo.git"

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import superModel from '@ederzadravec/super-model-mongo';
+import SuperModelMongo from '@ederzadravec/super-model-mongo';
 
 // Example mongoose schema
 const userSchema = new mongoose.Schema({
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
 const UserModel = mongoose.model('User', userSchema);
 
 // Create super model instance
-const userService = superModel(UserModel, {
+const userService = SuperModelMongo(UserModel, {
   populate: async (data) => {
     // Optional populate function - can be async
     if (Array.isArray(data)) {

@@ -19,17 +19,38 @@ npm install @ederzadravec/super-model-mongo
 yarn add @ederzadravec/super-model-mongo
 ```
 
+## Installation & Import
+
+### Installation
+```bash
+npm install @ederzadravec/super-model-mongo
+# or
+yarn add @ederzadravec/super-model-mongo
+```
+
+### Import Options
+```typescript
+// Default import (recommended)
+import SuperModelMongo from '@ederzadravec/super-model-mongo';
+
+// Named import
+import { createSuperModel } from '@ederzadravec/super-model-mongo';
+
+// Import with types
+import SuperModelMongo, { ServiceInstance, FindAllResponse } from '@ederzadravec/super-model-mongo';
+```
+
 ## Quick Start
 
 ```typescript
 import mongoose from 'mongoose';
-import superModel from '@ederzadravec/super-model-mongo';
+import SuperModelMongo from '@ederzadravec/super-model-mongo';
 
 // Define your mongoose model
 const UserModel = mongoose.model('User', userSchema);
 
 // Create super model instance
-const userService = superModel(UserModel, {
+const userService = SuperModelMongo(UserModel, {
   populate: async (data) => {
     // Optional populate function
     return data;
