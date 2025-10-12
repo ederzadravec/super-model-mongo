@@ -22,9 +22,14 @@ export interface FindAllResponse<T = Document> {
 }
 
 export interface UpdateResult {
-  ok: number;
-  n: number;
-  nModified: number;
+  ok?: number;
+  n?: number;
+  nModified?: number;
+  acknowledged?: boolean;
+  matchedCount?: number;
+  modifiedCount?: number;
+  upsertedCount?: number;
+  upsertedId?: ObjectId;
 }
 
 export type PathOperation = 'create' | 'update' | 'remove';
@@ -56,7 +61,8 @@ export interface ServiceInstance<T extends Document = Document> {
 }
 
 export interface SuperModelFactory {
-  <T extends Document = Document>(model: any, defaultOptions?: DefaultOptions<T>): ServiceInstance<T>;
+  <T extends Document = Document>(model: import('mongoose').Model<T>, defaultOptions?: DefaultOptions<T>): ServiceInstance<T>;
 }
 
-export default SuperModelFactory;
+declare const createSuperModel: SuperModelFactory;
+export default createSuperModel;

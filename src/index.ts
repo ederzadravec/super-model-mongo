@@ -1,10 +1,10 @@
-import createSuperModel from './model';
+// Import the main function
+import createSuperModelImpl from './model';
 
-// Named exports
-export { createSuperModel };
+// Re-export utility functions
 export { removeUndefined, getAggregationPath, getUpdatePath } from './generators';
 
-// Export types
+// Export types explicitly
 export type {
   ServiceInstance,
   MongoQuery,
@@ -17,5 +17,6 @@ export type {
   UpdateResult
 } from './model.d';
 
-// Default export para permitir import SuperModelMongo from '@ederzadravec/super-model-mongo'
-export default createSuperModel;
+// Export the main function as both named and default
+export const createSuperModel = createSuperModelImpl;
+export default createSuperModelImpl;

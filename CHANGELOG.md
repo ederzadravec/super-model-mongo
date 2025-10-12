@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2025-10-11
+
+### 🔧 Fixed
+- **TypeScript Import Issues**: Fixed `createSuperModel` being treated as type instead of value
+- Improved export declarations to properly export function values
+- Enhanced TypeScript compatibility with newer Mongoose versions
+- Added support for Mongoose 8.x in peer dependencies
+
+### 📦 Enhanced
+- Better TypeScript declaration generation for function exports
+- Improved module resolution for both CommonJS and ES modules
+- More robust UpdateResult interface for Mongoose compatibility
+
+### ✅ Verified Compatibility
+- ✅ Mongoose 5.x, 6.x, 7.x, and 8.x support
+- ✅ TypeScript strict mode compatibility
+- ✅ Both named and default imports working correctly
+
 ## [2.1.2] - 2025-10-11
 
 ### 🔧 Fixed
