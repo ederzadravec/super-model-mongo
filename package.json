@@ -1,6 +1,6 @@
 {
   "name": "@ederzadravec/super-model-mongo",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "A powerful MongoDB wrapper with enhanced functionality for nested documents and complex queries",
   "main": "dist/index.js",
   "module": "dist/index.js",
