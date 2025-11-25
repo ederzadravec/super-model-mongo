@@ -38,30 +38,53 @@ export type MongoQuery<T = unknown> = FilterQuery<T>;
 export type MongoUpdate<T = unknown> = UpdateQuery<T>;
 export type MongoProjection = string | Record<string, 0 | 1>;
 
-export interface ServiceInstance<T = unknown> {
+export type DocumentShape<T> = T extends Document ? T : T & Document;
+
+export interface ServiceInstance<T = Document, TDocument = DocumentShape<T>> {
   aggregate: (pipeline: Array<Record<string, unknown>>) => Aggregate<unknown[]>;
 
-  findOne: (query?: MongoQuery, projection?: MongoProjection, options?: QueryOptions) => Promise<T | null>;
-  findAll: (query?: MongoQuery, options?: FindAllOptions) => Promise<FindAllResponse<T>>;
+  findOne: (
+    query?: MongoQuery<TDocument>,
+    projection?: MongoProjection,
+    options?: QueryOptions
+  ) => Promise<T | null>;
+  findAll: (
+    query?: MongoQuery<TDocument>,
+    options?: FindAllOptions
+  ) => Promise<FindAllResponse<T>>;
   create: (data?: Partial<T>) => Promise<T>;
-  update: (query?: MongoQuery, data?: MongoUpdate) => Query<UpdateResult, Document>;
-  remove: (query?: MongoQuery) => Query<UpdateResult, Document>;
+  update: (
+    query?: MongoQuery<TDocument>,
+    data?: MongoUpdate<TDocument>
+  ) => Query<UpdateResult, TDocument>;
+  remove: (query?: MongoQuery<TDocument>) => Query<UpdateResult, TDocument>;
 
   hasAny: (fields?: Record<string, unknown>, exclude?: string) => Promise<string[]>;
 
-  findOnePath: <R = unknown>(query: MongoQuery, path: string) => Promise<R | null>;
+  findOnePath: <R = unknown>(query: MongoQuery<TDocument>, path: string) => Promise<R | null>;
   findAllPath: <R = unknown>(
-    query: MongoQuery,
+    query: MongoQuery<TDocument>,
     path: string,
     options?: FindAllOptions
   ) => Promise<FindAllResponse<R>>;
-  createPath: (query: MongoQuery, path: string, data: Record<string, unknown>) => Promise<UpdateResult>;
-  updatePath: (query: MongoQuery, path: string, data: Record<string, unknown>) => Promise<UpdateResult>;
-  removePath: (query: MongoQuery, path: string) => Promise<UpdateResult>;
+  createPath: (
+    query: MongoQuery<TDocument>,
+    path: string,
+    data: Record<string, unknown>
+  ) => Promise<UpdateResult>;
+  updatePath: (
+    query: MongoQuery<TDocument>,
+    path: string,
+    data: Record<string, unknown>
+  ) => Promise<UpdateResult>;
+  removePath: (query: MongoQuery<TDocument>, path: string) => Promise<UpdateResult>;
 }
 
 export interface SuperModelFactory {
-  <T = unknown>(model: import('mongoose').Model<Document>, defaultOptions?: DefaultOptions<T>): ServiceInstance<T>;
+  <T = any>(
+    model: import('mongoose').Model<any>,
+    defaultOptions?: DefaultOptions<any>
+  ): ServiceInstance<T, any>;
 }
 
 declare const createSuperModel: SuperModelFactory;

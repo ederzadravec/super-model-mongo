@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-11-24
+
+### 🔧 Fixed
+- **Type Compatibility Issues**: Completely removed generic constraints to accept any Mongoose model
+- Changed `createSuperModel<T>` to use flexible generics without `extends Document` constraint
+- Removed `DocumentShape<T>` from model parameter to prevent type conflicts
+- Fixed "Type does not satisfy the constraint 'Document<unknown, any, any, Record<string, any>, {}>'" errors
+- Now accepts interfaces with or without extending BaseDocument/Document
+
+### 🎯 Improved
+- Simplified the `createSuperModel` to accept `Model<any>` and let you specify the return type via generics
+- You only need to define the type parameter once: `createSuperModel<Person>(PersonModel)`
+- `findOne`, `findAll`, and `create` correctly return your domain type `T`
+
+## [Unreleased]
+- Works with plain interfaces, interfaces extending custom types, or Mongoose Document types
+
 ## [2.1.4] - 2025-11-24
 
 ### 📦 Maintenance Release

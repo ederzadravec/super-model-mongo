@@ -1,4 +1,4 @@
-import { Model, Query, Document, UpdateQuery, QueryOptions } from 'mongoose';
+import { Model, Query, UpdateQuery, QueryOptions } from 'mongoose';
 import objectid from 'objectid';
 
 import { removeUndefined, getAggregationPath, getUpdatePath } from './generators';
@@ -11,16 +11,17 @@ import * as Types from './model.d';
  * @param defaultOptions - Default options for the service
  * @returns Enhanced service instance
  */
-const createSuperModel = <T extends Document = Document>(
-  model: Model<T>,
-  defaultOptions: Types.DefaultOptions<T> = {}
-): Types.ServiceInstance<T> => {
+const createSuperModel = <T = any>(
+  model: Model<any>,
+  defaultOptions: Types.DefaultOptions<any> = {}
+): Types.ServiceInstance<T, any> => {
+  type ModelDocument = any;
   if (!model) {
     throw new Error('Model is required to create a super model instance');
   }
 
   const findOne = async (
-    query: Types.MongoQuery<T> = {},
+    query: Types.MongoQuery<ModelDocument> = {},
     projection?: Types.MongoProjection,
     options?: QueryOptions
   ): Promise<T | null> => {
@@ -41,7 +42,7 @@ const createSuperModel = <T extends Document = Document>(
   };
 
   const findAll = async (
-    query: Types.MongoQuery<T> = {},
+    query: Types.MongoQuery<ModelDocument> = {},
     options: Types.FindAllOptions = {}
   ): Promise<Types.FindAllResponse<T>> => {
     try {
@@ -67,16 +68,18 @@ const createSuperModel = <T extends Document = Document>(
 
       // Type assertion for aggregation result
       const aggregationResult = newResult as Array<{
-        data: T[];
+        data: ModelDocument[];
         total: Array<{ total: number }>;
       }>;
 
-      return {
-        data: aggregationResult?.[0]?.data || [],
+      const response: Types.FindAllResponse<T> = {
+        data: (aggregationResult?.[0]?.data || []) as T[],
         total: aggregationResult?.[0]?.total?.[0]?.total || 0,
         page,
         limit,
       };
+
+      return response;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Error in findAll: ${errorMessage}`);
@@ -85,18 +88,22 @@ const createSuperModel = <T extends Document = Document>(
 
   const create = async (data: Partial<T> = {}): Promise<T> => {
     try {
-      return await model.create(removeUndefined(data) as T);
+      const document = await model.create(removeUndefined(data) as ModelDocument);
+      return document as T;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Error in create: ${errorMessage}`);
     }
   };
 
-  const update = (query: Types.MongoQuery<T> = {}, data: Types.MongoUpdate<T> = {}): Query<Types.UpdateResult, T> => {
-    return model.updateOne(query, removeUndefined(data) as Types.MongoUpdate<T>);
+  const update = (
+    query: Types.MongoQuery<ModelDocument> = {},
+    data: Types.MongoUpdate<ModelDocument> = {}
+  ): Query<Types.UpdateResult, ModelDocument> => {
+    return model.updateOne(query, removeUndefined(data) as Types.MongoUpdate<ModelDocument>);
   };
 
-  const remove = (query: Types.MongoQuery<T> = {}): Query<Types.UpdateResult, T> => {
+  const remove = (query: Types.MongoQuery<ModelDocument> = {}): Query<Types.UpdateResult, ModelDocument> => {
     return model.remove(query);
   };
 
@@ -115,14 +122,14 @@ const createSuperModel = <T extends Document = Document>(
       const excludeQuery = exclude ? { _id: { $ne: objectid(exclude) } } : {};
 
       // Use type assertion for complex MongoDB query
-      const findQuery = { $or: query, ...excludeQuery } as Types.MongoQuery<T>;
+      const findQuery = { $or: query, ...excludeQuery } as Types.MongoQuery<ModelDocument>;
       const result = await model.find(findQuery);
 
       if (!result || result.length === 0) {
         return [];
       }
 
-      return result.reduce((acc: string[], item: Document) => {
+      return result.reduce((acc: string[], item: ModelDocument) => {
         const hasKeys = fieldsKey.filter((key) => (item as unknown as Record<string, unknown>)[key] === fields[key]);
         return [...acc, ...hasKeys];
       }, []);
@@ -132,7 +139,10 @@ const createSuperModel = <T extends Document = Document>(
     }
   };
 
-  const findOnePath = async <R = unknown>(query: Types.MongoQuery<T> = {}, path = ''): Promise<R | null> => {
+  const findOnePath = async <R = unknown>(
+    query: Types.MongoQuery<ModelDocument> = {},
+    path = ''
+  ): Promise<R | null> => {
     try {
       if (!path || typeof path !== 'string') {
         throw new Error('Path is required and must be a string');
@@ -156,7 +166,7 @@ const createSuperModel = <T extends Document = Document>(
   };
 
   const findAllPath = async <R = unknown>(
-    query: Types.MongoQuery<T> = {},
+    query: Types.MongoQuery<ModelDocument> = {},
     path = '',
     options: Types.FindAllOptions = {}
   ): Promise<Types.FindAllResponse<R>> => {
@@ -208,7 +218,7 @@ const createSuperModel = <T extends Document = Document>(
   };
 
   const createPath = async (
-    query: Types.MongoQuery<T> = {},
+    query: Types.MongoQuery<ModelDocument> = {},
     path = '',
     data: Record<string, unknown> = {}
   ): Promise<Types.UpdateResult> => {
@@ -218,7 +228,7 @@ const createSuperModel = <T extends Document = Document>(
       }
 
       const [updateQuery, options] = getUpdatePath('create', path, data);
-      return await model.updateOne(query, updateQuery as UpdateQuery<T>, options);
+      return await model.updateOne(query, updateQuery as UpdateQuery<ModelDocument>, options);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Error in createPath: ${errorMessage}`);
@@ -226,7 +236,7 @@ const createSuperModel = <T extends Document = Document>(
   };
 
   const updatePath = async (
-    query: Types.MongoQuery<T> = {},
+    query: Types.MongoQuery<ModelDocument> = {},
     path = '',
     data: Record<string, unknown> = {}
   ): Promise<Types.UpdateResult> => {
@@ -236,21 +246,24 @@ const createSuperModel = <T extends Document = Document>(
       }
 
       const [updateQuery, options] = getUpdatePath('update', path, data);
-      return await model.updateOne(query, updateQuery as UpdateQuery<T>, options);
+      return await model.updateOne(query, updateQuery as UpdateQuery<ModelDocument>, options);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Error in updatePath: ${errorMessage}`);
     }
   };
 
-  const removePath = async (query: Types.MongoQuery<T> = {}, path = ''): Promise<Types.UpdateResult> => {
+  const removePath = async (
+    query: Types.MongoQuery<ModelDocument> = {},
+    path = ''
+  ): Promise<Types.UpdateResult> => {
     try {
       if (!path || typeof path !== 'string') {
         throw new Error('Path is required and must be a string');
       }
 
       const [updateQuery, options] = getUpdatePath('remove', path);
-      return await model.updateOne(query, updateQuery as UpdateQuery<T>, options);
+      return await model.updateOne(query, updateQuery as UpdateQuery<ModelDocument>, options);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Error in removePath: ${errorMessage}`);

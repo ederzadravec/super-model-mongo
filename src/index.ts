@@ -7,6 +7,7 @@ export { removeUndefined, getAggregationPath, getUpdatePath } from './generators
 // Export types explicitly
 export type {
   ServiceInstance,
+  DocumentShape,
   MongoQuery,
   MongoUpdate,
   MongoProjection,

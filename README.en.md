@@ -479,11 +479,30 @@ const result = await userService.updatePath(
 ```typescript
 import superModel, { ServiceInstance, FindAllResponse } from '@ederzadravec/super-model-mongo';
 
-type UserDocument = mongoose.Document & { name: string };
+// Simple interface with your business fields
+interface User {
+  name: string;
+  email: string;
+  active: boolean;
+}
 
-const service: ServiceInstance<UserDocument> = superModel(UserModel);
-const result: FindAllResponse<UserDocument> = await service.findAll();
+// Create your Mongoose model as usual
+const UserModel = mongoose.model<User>('User', userSchema);
+
+// Specify the type only once in the generic
+const service: ServiceInstance<User> = superModel<User>(UserModel);
+
+// All methods return the correct type
+const user: User | null = await service.findOne({ email: 'user@example.com' });
+const result: FindAllResponse<User> = await service.findAll();
+const newUser: User = await service.create({ name: 'John', email: 'john@example.com', active: true });
 ```
+
+**Key benefits:**
+- No need to extend `Document` or use complex types
+- Just specify your interface once: `superModel<User>(UserModel)`
+- All methods automatically return the correct type
+- Works with simple interfaces or interfaces that extend custom types
 
 ## License
 
