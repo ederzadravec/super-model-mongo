@@ -1,4 +1,4 @@
-import { Aggregate, Query, ObjectId, Document, FilterQuery, UpdateQuery, QueryOptions } from 'mongoose';
+import { Aggregate, ObjectId, Document, FilterQuery, UpdateQuery, QueryOptions } from 'mongoose';
 
 export interface PaginationOptions {
   limit?: number;
@@ -56,8 +56,8 @@ export interface ServiceInstance<T = Document, TDocument = DocumentShape<T>> {
   update: (
     query?: MongoQuery<TDocument>,
     data?: MongoUpdate<TDocument>
-  ) => Query<UpdateResult, TDocument>;
-  remove: (query?: MongoQuery<TDocument>) => Query<UpdateResult, TDocument>;
+  ) => Promise<UpdateResult>;
+  remove: (query?: MongoQuery<TDocument>) => Promise<UpdateResult>;
 
   hasAny: (fields?: Record<string, unknown>, exclude?: string) => Promise<string[]>;
 

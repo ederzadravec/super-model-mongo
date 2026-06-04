@@ -1,16 +1,19 @@
-import { Model, Query, UpdateQuery, QueryOptions } from 'mongoose';
+import { Model, UpdateQuery, QueryOptions } from 'mongoose';
 import objectid from 'objectid';
 
 import { removeUndefined, getAggregationPath, getUpdatePath } from './generators';
 
 import * as Types from './model.d';
 
-/**
- * Creates a super model instance with enhanced MongoDB operations
- * @param model - Mongoose model instance
- * @param defaultOptions - Default options for the service
- * @returns Enhanced service instance
- */
+const toProjectObject = (project: string | Record<string, 0 | 1>): Record<string, 0 | 1> => {
+  if (typeof project === 'object') return project;
+  return project.split(' ').reduce<Record<string, 0 | 1>>((acc, field) => {
+    if (!field) return acc;
+    if (field.startsWith('-')) return { ...acc, [field.slice(1)]: 0 };
+    return { ...acc, [field]: 1 };
+  }, {});
+};
+
 const createSuperModel = <T = any>(
   model: Model<any>,
   defaultOptions: Types.DefaultOptions<any> = {}
@@ -48,40 +51,43 @@ const createSuperModel = <T = any>(
     try {
       const limit = Math.max(1, Math.min(100, options.limit || 10));
       const page = Math.max(1, options.page || 1);
-
       const sort = options.sort || { _id: 1 };
-      const project = options.project || '-nenhum';
+      const project = options.project;
       const populate = defaultOptions.populate;
 
-      const result = await model
-        .aggregate([
-          { $match: query },
-          { $sort: sort },
-          {
-            $facet: {
-              data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
-              total: [{ $count: 'total' }],
-            },
+      const dataPipeline: Record<string, unknown>[] = [
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+      ];
+      if (project) {
+        dataPipeline.push({ $project: toProjectObject(project) });
+      }
+
+      const result = await model.aggregate([
+        { $match: query },
+        { $sort: sort },
+        {
+          $facet: {
+            data: dataPipeline,
+            total: [{ $count: 'total' }],
           },
-        ])
-        .project(project);
+        },
+      ]);
 
-      const newResult = populate ? await populate(result) : result;
-
-      // Type assertion for aggregation result
-      const aggregationResult = newResult as Array<{
+      const aggregationResult = result as Array<{
         data: ModelDocument[];
         total: Array<{ total: number }>;
       }>;
 
-      const response: Types.FindAllResponse<T> = {
-        data: (aggregationResult?.[0]?.data || []) as T[],
+      const rawData = (aggregationResult?.[0]?.data || []) as T[];
+      const populatedData = populate ? (await populate(rawData)) as T[] : rawData;
+
+      return {
+        data: populatedData,
         total: aggregationResult?.[0]?.total?.[0]?.total || 0,
         page,
         limit,
       };
-
-      return response;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Error in findAll: ${errorMessage}`);
@@ -98,15 +104,15 @@ const createSuperModel = <T = any>(
     }
   };
 
-  const update = (
+  const update = async (
     query: Types.MongoQuery<ModelDocument> = {},
     data: Types.MongoUpdate<ModelDocument> = {}
-  ): Query<Types.UpdateResult, ModelDocument> => {
+  ): Promise<Types.UpdateResult> => {
     return model.updateOne(query, removeUndefined(data) as Types.MongoUpdate<ModelDocument>);
   };
 
-  const remove = (query: Types.MongoQuery<ModelDocument> = {}): Query<Types.UpdateResult, ModelDocument> => {
-    return model.remove(query);
+  const remove = async (query: Types.MongoQuery<ModelDocument> = {}): Promise<Types.UpdateResult> => {
+    return model.deleteMany(query);
   };
 
   const hasAny = async (fields?: Record<string, unknown>, exclude?: string): Promise<string[]> => {
@@ -123,9 +129,8 @@ const createSuperModel = <T = any>(
       const query = fieldsKey.map((item) => ({ [item]: fields[item] }));
       const excludeQuery = exclude ? { _id: { $ne: objectid(exclude) } } : {};
 
-      // Use type assertion for complex MongoDB query
       const findQuery = { $or: query, ...excludeQuery } as Types.MongoQuery<ModelDocument>;
-      const result = await model.find(findQuery);
+      const result = await model.find(findQuery).select(fieldsKey.join(' '));
 
       if (!result || result.length === 0) {
         return [];
@@ -179,37 +184,42 @@ const createSuperModel = <T = any>(
 
       const limit = Math.max(1, Math.min(100, options.limit || 10));
       const page = Math.max(1, options.page || 1);
-
       const sort = options.sort || { _id: 1 };
-      const project = options.project || '-nenhum';
+      const project = options.project;
       const populate = defaultOptions.populate;
 
       const pathFilter = getAggregationPath(path);
 
-      const result = await model
-        .aggregate([
-          { $match: query },
-          ...pathFilter,
-          { $sort: sort },
-          {
-            $facet: {
-              data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
-              total: [{ $count: 'total' }],
-            },
+      const dataPipeline: Record<string, unknown>[] = [
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+      ];
+      if (project) {
+        dataPipeline.push({ $project: toProjectObject(project) });
+      }
+
+      const result = await model.aggregate([
+        { $match: query },
+        ...pathFilter,
+        { $sort: sort },
+        {
+          $facet: {
+            data: dataPipeline,
+            total: [{ $count: 'total' }],
           },
-        ])
-        .project(project);
+        },
+      ]);
 
-      const newResult = populate ? await populate(result) : result;
-
-      // Type assertion for aggregation result
-      const aggregationResult = newResult as Array<{
+      const aggregationResult = result as Array<{
         data: R[];
         total: Array<{ total: number }>;
       }> | null;
 
+      const rawData = (aggregationResult?.[0]?.data || []) as R[];
+      const populatedData = populate ? (await populate(rawData)) as R[] : rawData;
+
       return {
-        data: aggregationResult?.[0]?.data || [],
+        data: populatedData,
         total: aggregationResult?.[0]?.total?.[0]?.total || 0,
         page,
         limit,

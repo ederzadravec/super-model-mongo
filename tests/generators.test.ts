@@ -55,6 +55,25 @@ describe('Generators', () => {
     it('should throw error for invalid path segment', () => {
       expect(() => getAggregationPath('.')).toThrow('Invalid path segment');
     });
+
+    it('should generate $match stage for field:value with ObjectId', () => {
+      const id = '507f1f77bcf86cd799439011';
+      const result = getAggregationPath(`items.id:${id}`);
+      expect(result).toEqual([
+        { $unwind: '$items' },
+        { $replaceRoot: { newRoot: '$items' } },
+        { $match: { _id: expect.any(Object) } },
+      ]);
+    });
+
+    it('should generate $match stage for field:value with non-ObjectId', () => {
+      const result = getAggregationPath('items.status:active');
+      expect(result).toEqual([
+        { $unwind: '$items' },
+        { $replaceRoot: { newRoot: '$items' } },
+        { $match: { status: 'active' } },
+      ]);
+    });
   });
 
   describe('getUpdatePath', () => {
@@ -144,6 +163,23 @@ describe('Generators', () => {
       
       // Test that we can handle more than the original 10 variable limit
       expect(arrayFilters.length).toBeGreaterThan(10);
+    });
+
+    it('should generate correct update for remove operation with ObjectId', () => {
+      const id = '507f1f77bcf86cd799439011';
+      const [updateQuery, options] = getUpdatePath('remove', `items.id:${id}`);
+      expect(updateQuery).toEqual({
+        $pull: { items: { _id: expect.any(Object) } },
+      });
+      expect(options).toEqual({ arrayFilters: [] });
+    });
+
+    it('should generate correct update for remove operation with non-ObjectId', () => {
+      const [updateQuery, options] = getUpdatePath('remove', 'items.status:active');
+      expect(updateQuery).toEqual({
+        $pull: { items: { status: 'active' } },
+      });
+      expect(options).toEqual({ arrayFilters: [] });
     });
 
     it('should throw error for invalid operation type', () => {

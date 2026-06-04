@@ -60,14 +60,11 @@ export const getAggregationPath = (data: string): Array<Record<string, unknown>>
 
     if (field && value) {
       const key = field === 'id' ? '_id' : field;
-      
-      if (!objectid.isValid(value)) {
-        throw new Error(`Invalid ObjectId in path: ${value}`);
-      }
+      const matchValue = objectid.isValid(value) ? objectid(value) : value;
 
       stage.push({
         $match: {
-          [key]: objectid(value),
+          [key]: matchValue,
         },
       });
     }
@@ -162,24 +159,18 @@ export const getUpdatePath = (
       }
 
       if (field && value && !isLastToRemove) {
-        if (!objectid.isValid(value)) {
-          throw new Error(`Invalid ObjectId in path: ${value}`);
-        }
-
         const key = field === 'id' ? '_id' : field;
         const letter = generateVarName(acc.filter.length);
+        const matchValue = objectid.isValid(value) ? objectid(value) : value;
 
         newMap.push(`$[${letter}]`);
-        newFilter.push({ [`${letter}.${key}`]: objectid(value) });
+        newFilter.push({ [`${letter}.${key}`]: matchValue });
       }
 
       if (isLastToRemove) {
-        if (!objectid.isValid(value)) {
-          throw new Error(`Invalid ObjectId in path: ${value}`);
-        }
-
         const key = field === 'id' ? '_id' : field;
-        newData = { [key]: objectid(value) };
+        const matchValue = objectid.isValid(value) ? objectid(value) : value;
+        newData = { [key]: matchValue };
       }
 
       return {
