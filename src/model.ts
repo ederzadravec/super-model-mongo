@@ -55,10 +55,12 @@ const createSuperModel = <T = any>(
 
       const result = await model
         .aggregate([
+          { $match: query },
+          { $sort: sort },
           {
             $facet: {
-              data: [{ $match: query }, { $skip: (page - 1) * limit }, { $limit: limit }, { $sort: sort }],
-              total: [{ $match: query }, { $count: 'total' }],
+              data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+              total: [{ $count: 'total' }],
             },
           },
         ])
@@ -188,9 +190,10 @@ const createSuperModel = <T = any>(
         .aggregate([
           { $match: query },
           ...pathFilter,
+          { $sort: sort },
           {
             $facet: {
-              data: [{ $skip: (page - 1) * limit }, { $limit: limit }, { $sort: sort }],
+              data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
               total: [{ $count: 'total' }],
             },
           },
