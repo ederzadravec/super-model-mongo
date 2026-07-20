@@ -15,6 +15,10 @@ export const removeUndefined = (data: unknown): unknown => {
   const notObjectId = (value: unknown): boolean => !objectid.isValid(value);
 
   const removeFF = (value: unknown): unknown => {
+    if (objectid.isValid(value)) {
+      return value;
+    }
+
     if (R.type(value) === 'Array') {
       const arrayValue = value as unknown[];
       const newValue = arrayValue.filter((item: unknown) => !isUndefined(item));

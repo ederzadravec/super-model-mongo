@@ -1,4 +1,5 @@
 import { removeUndefined, getAggregationPath, getUpdatePath } from '../src/generators';
+import mongoose from 'mongoose';
 
 describe('Generators', () => {
   describe('removeUndefined', () => {
@@ -29,6 +30,13 @@ describe('Generators', () => {
       const expected = ['a', 'b', 'c'];
 
       expect(removeUndefined(input as any)).toEqual(expected);
+    });
+
+    it('should preserve ObjectId values inside arrays', () => {
+      const id = new mongoose.Types.ObjectId('6a1707a095a0c80d25810f20');
+      const result = removeUndefined({ $set: { members: [id] } }) as { $set: { members: unknown[] } };
+
+      expect(result.$set.members[0]).toBe(id);
     });
 
     it('should return original data if null or undefined', () => {
